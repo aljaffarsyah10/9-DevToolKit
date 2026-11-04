@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DevToolkit (Next.js Application)
 
-## Getting Started
+> **All your essential developer tools in one place. 100% client-side. Zero server uploads. No ads.**
 
-First, run the development server:
+This directory contains the Next.js 16 (App Router) codebase for DevToolkit. For the complete project documentation, architectural plan, and quality reports, see the root [README.md](../README.md).
+
+---
+
+## 🚀 Quick Start (Development)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# 1. Install dependencies
+pnpm install
+
+# 2. Start development server
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Verification & Quality Checks
 
-## Learn More
+```bash
+# Run all 77 automated test suites (Vitest)
+pnpm test
 
-To learn more about Next.js, take a look at the following resources:
+# Run tests in interactive watch mode
+pnpm test:watch
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# TypeScript strict type checking
+pnpm exec tsc --noEmit
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# ESLint analysis
+pnpm lint
 
-## Deploy on Vercel
+# Production build
+pnpm build
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Run production standalone server
+node .next/standalone/server.js
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📦 Key Directory Structure
+
+- `src/app/`: Next.js App Router pages and metadata
+- `src/components/`: Reusable UI, layout, feedback, and panel components
+- `src/features/`: Isolated feature modules (UI components + pure utility engines)
+- `src/hooks/`: Reactive hooks (`useToolPreferences` via `useSyncExternalStore`)
+- `src/lib/`: Clipboard and download helpers
+- `tests/`: Unit, component integration, and simulated E2E user workflow tests
