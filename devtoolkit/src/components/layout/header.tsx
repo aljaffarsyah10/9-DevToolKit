@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Terminal, ShieldCheck, Menu, X, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ThemeToggle } from '@/components/layout/theme-toggle';
 
 interface HeaderProps {
   onSearchClick?: () => void;
@@ -76,6 +77,9 @@ export function AppNavbar({ onSearchClick }: HeaderProps) {
               </kbd>
             </Button>
           )}
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           {/* Mobile menu trigger */}
           <Button

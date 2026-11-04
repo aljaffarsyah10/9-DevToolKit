@@ -89,6 +89,7 @@ export function JwtDecoderView() {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
       <ToolHeader
+        toolId="jwt-decoder"
         title="JWT Decoder"
         description="Decode, inspect, and verify expiration of JSON Web Token headers and payload claims."
         category="Security"

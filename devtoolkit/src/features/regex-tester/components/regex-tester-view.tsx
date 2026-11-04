@@ -77,6 +77,7 @@ export function RegexTesterView() {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
       <ToolHeader
+        toolId="regex-tester"
         title="Regex Tester"
         description="Test and debug regular expressions in real-time with pattern matching and infinite-loop protection."
         category="Testers"

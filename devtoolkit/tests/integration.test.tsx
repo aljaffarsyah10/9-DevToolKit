@@ -7,6 +7,9 @@ import { Base64View } from '@/features/base64/components/base64-view';
 import { JwtDecoderView } from '@/features/jwt-decoder/components/jwt-decoder-view';
 import { RegexTesterView } from '@/features/regex-tester/components/regex-tester-view';
 import { UuidGeneratorView } from '@/features/uuid-generator/components/uuid-generator-view';
+import { UrlCodecView } from '@/features/url-codec/components/url-codec-view';
+import { TimestampConverterView } from '@/features/timestamp-converter/components/timestamp-converter-view';
+import { HashGeneratorView } from '@/features/hash-generator/components/hash-generator-view';
 
 describe('Phase 7 — Frontend & Backend Integration (End-to-End Flow)', () => {
   describe('JSON Formatter Integration', () => {
@@ -116,6 +119,45 @@ describe('Phase 7 — Frontend & Backend Integration (End-to-End Flow)', () => {
       fireEvent.click(generateBtn);
 
       expect(screen.getByText(/Cryptographically generated via Web Crypto/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('URL Codec Integration', () => {
+    it('encodes and decodes URL strings', () => {
+      render(<UrlCodecView />);
+      const inputArea = screen.getByPlaceholderText(/Enter raw URI or query string/i);
+      fireEvent.change(inputArea, { target: { value: 'https://devtoolkit.dev?q=test query' } });
+
+      const encodeBtn = screen.getByRole('button', { name: /^Encode$/i });
+      fireEvent.click(encodeBtn);
+
+      expect(screen.getByText(/Successfully percent-encoded URL/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Timestamp Converter Integration', () => {
+    it('converts Unix epoch timestamp to ISO string', () => {
+      render(<TimestampConverterView />);
+      const inputArea = screen.getByPlaceholderText(/Enter Unix seconds/i);
+      fireEvent.change(inputArea, { target: { value: '1700000000' } });
+
+      const convertBtn = screen.getByRole('button', { name: /Convert Timestamp/i });
+      fireEvent.click(convertBtn);
+
+      expect(screen.getByText('2023-11-14T22:13:20.000Z')).toBeInTheDocument();
+    });
+  });
+
+  describe('Hash Generator Integration', () => {
+    it('generates SHA-256 hash digest asynchronously', async () => {
+      render(<HashGeneratorView />);
+      const inputArea = screen.getByPlaceholderText(/Enter text to compute cryptographic hash/i);
+      fireEvent.change(inputArea, { target: { value: 'hello world' } });
+
+      const hashBtn = screen.getByRole('button', { name: /Calculate Hash/i });
+      fireEvent.click(hashBtn);
+
+      expect(await screen.findByText(/b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9/)).toBeInTheDocument();
     });
   });
 });

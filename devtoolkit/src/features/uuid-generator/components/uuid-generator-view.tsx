@@ -58,6 +58,7 @@ export function UuidGeneratorView() {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
       <ToolHeader
+        toolId="uuid-generator"
         title="UUID Generator"
         description="Generate cryptographically strong RFC4122 version 4 UUIDs using the Web Crypto API."
         category="Generators"

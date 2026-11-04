@@ -1,16 +1,29 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronRight, ShieldCheck, LucideIcon } from 'lucide-react';
+import { ChevronRight, ShieldCheck, LucideIcon, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useToolPreferences } from '@/hooks/use-tool-preferences';
 
 interface ToolHeaderProps {
   title: string;
   description: string;
   category: string;
   icon: LucideIcon;
+  toolId?: string;
 }
 
-export function ToolHeader({ title, description, category, icon: Icon }: ToolHeaderProps) {
+export function ToolHeader({ title, description, category, icon: Icon, toolId }: ToolHeaderProps) {
+  const { addRecentlyUsed, isFavorite, toggleFavorite, isLoaded } = useToolPreferences();
+  const favorited = toolId && isLoaded ? isFavorite(toolId) : false;
+
+  useEffect(() => {
+    if (toolId) {
+      addRecentlyUsed(toolId);
+    }
+  }, [toolId, addRecentlyUsed]);
+
   return (
     <div className="space-y-4 mb-6">
       {/* Breadcrumb */}
@@ -38,6 +51,19 @@ export function ToolHeader({ title, description, category, icon: Icon }: ToolHea
               <Badge variant="outline" className="text-xs uppercase tracking-wider font-semibold">
                 {category}
               </Badge>
+              {toolId && (
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(toolId)}
+                  className={`p-1 rounded hover:bg-muted transition-colors ${
+                    favorited ? 'text-amber-500' : 'text-muted-foreground/60 hover:text-amber-500'
+                  }`}
+                  title={favorited ? 'Remove from favorites' : 'Add to favorites'}
+                  aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
+                >
+                  <Star className={`h-4 w-4 ${favorited ? 'fill-amber-500' : ''}`} />
+                </button>
+              )}
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{description}</p>
           </div>
@@ -52,4 +78,3 @@ export function ToolHeader({ title, description, category, icon: Icon }: ToolHea
     </div>
   );
 }
-

@@ -141,6 +141,7 @@ export function JsonFormatterView() {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
       <ToolHeader
+        toolId="json-formatter"
         title="JSON Formatter & Validator"
         description="Format, prettify, minify, and validate JSON data with custom indentation in your browser."
         category="Formatters"

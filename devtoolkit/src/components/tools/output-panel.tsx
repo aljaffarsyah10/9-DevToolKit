@@ -1,13 +1,17 @@
 'use client';
 
 import React, { ReactNode } from 'react';
+import { Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { CopyButton } from './copy-button';
+import { downloadTextFile } from '@/lib/download';
 
 interface OutputPanelProps {
   title?: string;
   value?: string;
   charCount?: number;
   lineCount?: number;
+  downloadFilename?: string;
   actions?: ReactNode;
   children: ReactNode;
 }
@@ -17,9 +21,16 @@ export function OutputPanel({
   value = '',
   charCount,
   lineCount,
+  downloadFilename,
   actions,
   children,
 }: OutputPanelProps) {
+  const handleDownload = () => {
+    if (!value) return;
+    const name = downloadFilename || 'devtoolkit-output.txt';
+    downloadTextFile(name, value);
+  };
+
   return (
     <div className="flex flex-col h-full rounded-xl border border-border/80 bg-card overflow-hidden shadow-sm">
       {/* Panel Header */}
@@ -38,6 +49,20 @@ export function OutputPanel({
 
         <div className="flex items-center gap-1.5">
           {actions}
+          {value && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDownload}
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+              title="Download output as file"
+              aria-label="Download result"
+            >
+              <Download className="h-3.5 w-3.5 mr-1" />
+              <span>Download</span>
+            </Button>
+          )}
           <CopyButton value={value} size="sm" className="h-7 text-xs" />
         </div>
       </div>
@@ -47,4 +72,3 @@ export function OutputPanel({
     </div>
   );
 }
-

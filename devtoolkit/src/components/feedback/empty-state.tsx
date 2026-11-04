@@ -1,11 +1,11 @@
 import React from 'react';
-import { SearchX, Inbox } from 'lucide-react';
+import { SearchX, Inbox, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface EmptyStateProps {
   title: string;
   description: string;
-  type?: 'search' | 'content';
+  type?: 'search' | 'content' | 'info';
   actionLabel?: string;
   onAction?: () => void;
 }
@@ -17,7 +17,7 @@ export function EmptyState({
   actionLabel,
   onAction,
 }: EmptyStateProps) {
-  const Icon = type === 'search' ? SearchX : Inbox;
+  const Icon = type === 'search' ? SearchX : type === 'info' ? Info : Inbox;
 
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center rounded-xl border border-dashed border-border/80 bg-muted/20">
@@ -34,4 +34,3 @@ export function EmptyState({
     </div>
   );
 }
-

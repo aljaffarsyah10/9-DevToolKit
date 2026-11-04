@@ -82,6 +82,7 @@ export function Base64View() {
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
       <ToolHeader
+        toolId="base64"
         title="Base64 Encoder / Decoder"
         description="Encode and decode text strings with full UTF-8 support (including unicode and emojis)."
         category="Encoders"
