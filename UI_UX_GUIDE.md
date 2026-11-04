@@ -291,3 +291,4 @@ stateDiagram-v2
 ---
 
 Dokumen ini menjadi acuan desain visual dan interaksi frontend untuk Phase 4 (Frontend Foundation) dan Phase 5 (Core Frontend Features).
+
