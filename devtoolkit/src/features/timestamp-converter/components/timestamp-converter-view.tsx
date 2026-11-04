@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useSyncExternalStore } from 'react';
 import { Calendar, Clock, RefreshCw, Play, Copy, Check } from 'lucide-react';
 import { ToolHeader } from '@/components/tools/tool-header';
 import { ToolLayout } from '@/components/tools/tool-layout';
@@ -17,27 +17,32 @@ import {
 import { copyToClipboard } from '@/lib/clipboard';
 
 export function TimestampConverterView() {
-  const [currentSeconds, setCurrentSeconds] = useState<number>(1700000000);
+  const currentSeconds = useSyncExternalStore(
+    (callback) => {
+      const timer = setInterval(callback, 1000);
+      return () => clearInterval(timer);
+    },
+    () => getCurrentUnixSeconds(),
+    () => 1700000000
+  );
+
   const [input, setInput] = useState<string>('1700000000');
   const [details, setDetails] = useState<TimestampDetails | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  // Live timer for current Unix timestamp & initial sync on client mount
+  // Sync to current time after mount
   useEffect(() => {
-    const sec = getCurrentUnixSeconds();
-    setCurrentSeconds(sec);
-    setInput(String(sec));
-    try {
-      setDetails(convertTimestamp(sec));
-    } catch {
-      // Ignore
-    }
-
-    const timer = setInterval(() => {
-      setCurrentSeconds(getCurrentUnixSeconds());
-    }, 1000);
-    return () => clearInterval(timer);
+    const timeout = setTimeout(() => {
+      const sec = getCurrentUnixSeconds();
+      setInput(String(sec));
+      try {
+        setDetails(convertTimestamp(sec));
+      } catch {
+        // Ignore
+      }
+    }, 0);
+    return () => clearTimeout(timeout);
   }, []);
 
   const handleConvert = () => {

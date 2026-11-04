@@ -36,6 +36,12 @@ export function AppShell({ children }: AppShellProps) {
         e.preventDefault();
         setShortcutsModalOpen((prev) => !prev);
       }
+
+      // Escape dismisses any open modal
+      if (e.key === 'Escape') {
+        setCommandPaletteOpen(false);
+        setShortcutsModalOpen(false);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);

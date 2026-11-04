@@ -1,46 +1,85 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useSyncExternalStore, useCallback, useMemo } from 'react';
 
 const FAVORITES_STORAGE_KEY = 'devtoolkit_favorites';
 const RECENT_STORAGE_KEY = 'devtoolkit_recently_used';
 const MAX_RECENT_ITEMS = 10;
 
+function subscribe(callback: () => void) {
+  window.addEventListener('storage', callback);
+  window.addEventListener('devtoolkit_prefs_change', callback);
+  return () => {
+    window.removeEventListener('storage', callback);
+    window.removeEventListener('devtoolkit_prefs_change', callback);
+  };
+}
+
+function getFavoritesSnapshot(): string {
+  try {
+    return localStorage.getItem(FAVORITES_STORAGE_KEY) || '[]';
+  } catch {
+    return '[]';
+  }
+}
+
+function getRecentlyUsedSnapshot(): string {
+  try {
+    return localStorage.getItem(RECENT_STORAGE_KEY) || '[]';
+  } catch {
+    return '[]';
+  }
+}
+
+const EMPTY_JSON_ARRAY = '[]';
+const emptySubscribe = () => () => {};
+
 export function useToolPreferences() {
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [recentlyUsed, setRecentlyUsed] = useState<string[]>([]);
-  const [mounted, setMounted] = useState(false);
+  const isLoaded = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
-    setMounted(true);
+  const rawFavorites = useSyncExternalStore(
+    subscribe,
+    getFavoritesSnapshot,
+    () => EMPTY_JSON_ARRAY
+  );
+
+  const rawRecentlyUsed = useSyncExternalStore(
+    subscribe,
+    getRecentlyUsedSnapshot,
+    () => EMPTY_JSON_ARRAY
+  );
+
+  const favorites = useMemo(() => {
     try {
-      const storedFavs = localStorage.getItem(FAVORITES_STORAGE_KEY);
-      if (storedFavs) {
-        setFavorites(JSON.parse(storedFavs));
-      }
-
-      const storedRecent = localStorage.getItem(RECENT_STORAGE_KEY);
-      if (storedRecent) {
-        setRecentlyUsed(JSON.parse(storedRecent));
-      }
+      return JSON.parse(rawFavorites) as string[];
     } catch {
-      // Ignore JSON parse or storage errors
+      return [];
     }
-  }, []);
+  }, [rawFavorites]);
+
+  const recentlyUsed = useMemo(() => {
+    try {
+      return JSON.parse(rawRecentlyUsed) as string[];
+    } catch {
+      return [];
+    }
+  }, [rawRecentlyUsed]);
 
   const toggleFavorite = useCallback((toolId: string) => {
-    setFavorites((prev) => {
-      const next = prev.includes(toolId)
-        ? prev.filter((id) => id !== toolId)
-        : [...prev, toolId];
-
-      try {
-        localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // Ignore
-      }
-      return next;
-    });
+    try {
+      const current: string[] = JSON.parse(localStorage.getItem(FAVORITES_STORAGE_KEY) || '[]');
+      const next = current.includes(toolId)
+        ? current.filter((id) => id !== toolId)
+        : [...current, toolId];
+      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(next));
+      window.dispatchEvent(new Event('devtoolkit_prefs_change'));
+    } catch {
+      // Ignore
+    }
   }, []);
 
   const isFavorite = useCallback(
@@ -51,18 +90,16 @@ export function useToolPreferences() {
   );
 
   const addRecentlyUsed = useCallback((toolId: string) => {
-    setRecentlyUsed((prev) => {
-      if (prev[0] === toolId) return prev;
-      const filtered = prev.filter((id) => id !== toolId);
+    try {
+      const current: string[] = JSON.parse(localStorage.getItem(RECENT_STORAGE_KEY) || '[]');
+      if (current[0] === toolId) return;
+      const filtered = current.filter((id) => id !== toolId);
       const next = [toolId, ...filtered].slice(0, MAX_RECENT_ITEMS);
-
-      try {
-        localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // Ignore
-      }
-      return next;
-    });
+      localStorage.setItem(RECENT_STORAGE_KEY, JSON.stringify(next));
+      window.dispatchEvent(new Event('devtoolkit_prefs_change'));
+    } catch {
+      // Ignore
+    }
   }, []);
 
   return {
@@ -71,6 +108,6 @@ export function useToolPreferences() {
     isFavorite,
     toggleFavorite,
     addRecentlyUsed,
-    isLoaded: mounted,
+    isLoaded,
   };
 }

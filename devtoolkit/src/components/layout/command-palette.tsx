@@ -44,9 +44,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
   useEffect(() => {
     if (isOpen) {
-      setQuery('');
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      inputRef.current?.focus();
     }
   }, [isOpen]);
 
@@ -61,12 +59,19 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     );
   });
 
-  useEffect(() => {
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
     setSelectedIndex(0);
-  }, [query]);
+  };
+
+  const handleClose = () => {
+    setQuery('');
+    setSelectedIndex(0);
+    onClose();
+  };
 
   const handleSelect = (slug: string) => {
-    onClose();
+    handleClose();
     router.push(`/tools/${slug}`);
   };
 
@@ -84,7 +89,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       }
     } else if (e.key === 'Escape') {
       e.preventDefault();
-      onClose();
+      handleClose();
     }
   };
 
@@ -96,7 +101,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       aria-modal="true"
       aria-label="Command Palette"
       className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 bg-background/80 backdrop-blur-sm p-4 animate-in fade-in duration-150"
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         className="w-full max-w-lg overflow-hidden rounded-xl border border-border bg-card shadow-2xl transition-all"
@@ -110,7 +115,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={handleQueryChange}
             placeholder="Type a tool name or command..."
             className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground focus:outline-none"
           />
@@ -118,7 +123,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             ESC
           </kbd>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1 text-muted-foreground hover:text-foreground rounded"
             aria-label="Close command palette"
           >

@@ -1,44 +1,60 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useSyncExternalStore, useCallback } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const THEME_STORAGE_KEY = 'devtoolkit_theme';
+
+function subscribe(callback: () => void) {
+  window.addEventListener('storage', callback);
+  window.addEventListener('devtoolkit_theme_change', callback);
+  return () => {
+    window.removeEventListener('storage', callback);
+    window.removeEventListener('devtoolkit_theme_change', callback);
+  };
+}
+
+function getSnapshot(): 'light' | 'dark' {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'dark' || stored === 'light') return stored;
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    return 'light';
+  } catch {
+    return 'light';
+  }
+}
+
+function getServerSnapshot(): 'light' | 'dark' {
+  return 'light';
+}
+
+const emptySubscribe = () => () => {};
+
 export function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const stored = localStorage.getItem('devtoolkit_theme');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme = stored === 'dark' || (!stored && prefersDark) ? 'dark' : 'light';
-      setTheme(initialTheme);
-      if (initialTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    } catch {
-      // Fallback to light
-    }
-  }, []);
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
     try {
-      localStorage.setItem('devtoolkit_theme', next);
+      localStorage.setItem(THEME_STORAGE_KEY, next);
       if (next === 'dark') {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
+      window.dispatchEvent(new Event('devtoolkit_theme_change'));
     } catch {
       // Ignore
     }
-  };
+  }, [theme]);
 
   if (!mounted) {
     return (
@@ -66,4 +82,3 @@ export function ThemeToggle() {
     </Button>
   );
 }
-
