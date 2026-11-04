@@ -10,6 +10,7 @@ import { ErrorMessage } from '@/components/feedback/error-message';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { encodeBase64, decodeBase64 } from '@/features/base64/utils/base64';
 
 type Base64Mode = 'encode' | 'decode';
 
@@ -23,36 +24,6 @@ export function Base64View() {
   const [error, setError] = useState<string | null>(null);
   const [successStatus, setSuccessStatus] = useState<string | null>(null);
 
-  // UTF-8 Safe Base64 encoding helper for UI interaction
-  const executeEncode = (text: string) => {
-    try {
-      const bytes = new TextEncoder().encode(text);
-      let binary = '';
-      for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return btoa(binary);
-    } catch {
-      throw new Error('Failed to encode string into UTF-8 Base64.');
-    }
-  };
-
-  // UTF-8 Safe Base64 decoding helper for UI interaction
-  const executeDecode = (base64Str: string) => {
-    try {
-      // Clean up whitespace / newlines
-      const cleaned = base64Str.trim().replace(/\s+/g, '');
-      const binary = atob(cleaned);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      return new TextDecoder().decode(bytes);
-    } catch {
-      throw new Error('Invalid Base64 character or malformed padding.');
-    }
-  };
-
   const handleProcess = () => {
     if (!input.trim()) {
       setError('Please provide input text or Base64 string.');
@@ -63,11 +34,11 @@ export function Base64View() {
 
     try {
       if (mode === 'encode') {
-        const res = executeEncode(input);
+        const res = encodeBase64(input);
         setOutput(res);
         setSuccessStatus('Successfully encoded to UTF-8 Base64.');
       } else {
-        const res = executeDecode(input);
+        const res = decodeBase64(input);
         setOutput(res);
         setSuccessStatus('Successfully decoded from Base64.');
       }
@@ -201,7 +172,7 @@ export function Base64View() {
 
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
-                UTF-8 Enabled
+                Engine Integrated
               </Badge>
             </div>
           </>
@@ -254,4 +225,3 @@ export function Base64View() {
     </div>
   );
 }
-

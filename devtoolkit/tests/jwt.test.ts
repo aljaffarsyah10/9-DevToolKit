@@ -75,3 +75,4 @@ describe('JWT Decoder Engine', () => {
     expect(() => decodeJwt(`${badHeader}.${validPayload}.sig`)).toThrow(/Failed to decode JWT header/);
   });
 });
+

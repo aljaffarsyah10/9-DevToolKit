@@ -42,3 +42,4 @@ describe('UUID Generator Engine', () => {
     expect(() => generateUUID(1001)).toThrow('Cannot generate more than 1000 UUIDs');
   });
 });
+

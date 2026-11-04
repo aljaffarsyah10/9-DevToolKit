@@ -11,13 +11,7 @@ import { EmptyState } from '@/components/feedback/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-
-interface MatchItem {
-  value: string;
-  index: number;
-  length: number;
-  groups?: Record<string, string>;
-}
+import { testRegex, RegexMatch } from '@/features/regex-tester/utils/regex';
 
 const SAMPLE_PATTERN = '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}';
 const SAMPLE_TEXT =
@@ -27,7 +21,7 @@ export function RegexTesterView() {
   const [pattern, setPattern] = useState<string>(SAMPLE_PATTERN);
   const [flags, setFlags] = useState<string>('g');
   const [testString, setTestString] = useState<string>(SAMPLE_TEXT);
-  const [matches, setMatches] = useState<MatchItem[]>([]);
+  const [matches, setMatches] = useState<RegexMatch[]>([]);
   const [hasTested, setHasTested] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,45 +40,8 @@ export function RegexTesterView() {
     }
 
     try {
-      const regex = new RegExp(pattern, flags);
-      const foundMatches: MatchItem[] = [];
-
-      if (flags.includes('g')) {
-        let match: RegExpExecArray | null;
-        let iterations = 0;
-        const maxIterations = 2000; // Safeguard against infinite loops
-
-        while ((match = regex.exec(testString)) !== null) {
-          foundMatches.push({
-            value: match[0],
-            index: match.index,
-            length: match[0].length,
-            groups: match.groups ? { ...match.groups } : undefined,
-          });
-
-          // Zero-length match safeguard: advance regex.lastIndex to prevent infinite loop
-          if (match[0].length === 0) {
-            regex.lastIndex++;
-          }
-
-          iterations++;
-          if (iterations >= maxIterations) {
-            break;
-          }
-        }
-      } else {
-        const match = regex.exec(testString);
-        if (match) {
-          foundMatches.push({
-            value: match[0],
-            index: match.index,
-            length: match[0].length,
-            groups: match.groups ? { ...match.groups } : undefined,
-          });
-        }
-      }
-
-      setMatches(foundMatches);
+      const result = testRegex(pattern, flags, testString);
+      setMatches(result.matches);
       setError(null);
       setHasTested(true);
     } catch (err: unknown) {
@@ -113,7 +70,7 @@ export function RegexTesterView() {
   const formattedOutput = matches
     .map(
       (m, idx) =>
-        `[Match ${idx + 1}] (index ${m.index}..${m.index + m.length}): "${m.value}"`
+        `[Match ${idx + 1}] (index ${m.index}..${m.index + m.value.length}): "${m.value}"`
     )
     .join('\n');
 
@@ -206,7 +163,7 @@ export function RegexTesterView() {
 
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
-                Flags: /{flags}
+                Engine Integrated
               </Badge>
             </div>
           </>
@@ -252,7 +209,7 @@ export function RegexTesterView() {
                     <div className="flex items-center justify-between text-[11px] text-muted-foreground">
                       <span className="font-semibold text-primary">Match #{idx + 1}</span>
                       <span>
-                        Index: {item.index}..{item.index + item.length} ({item.length} chars)
+                        Index: {item.index}..{item.index + item.value.length} ({item.value.length} chars)
                       </span>
                     </div>
                     <div className="p-2 rounded bg-background border border-border/60 text-foreground break-all">
@@ -282,4 +239,3 @@ export function RegexTesterView() {
     </div>
   );
 }
-

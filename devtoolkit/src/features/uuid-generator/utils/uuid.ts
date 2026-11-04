@@ -71,3 +71,4 @@ export function generateUUID(count: number, options?: UuidOptions): string[] {
 
   return results;
 }
+

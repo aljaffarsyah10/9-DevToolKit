@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { copyToClipboard } from '@/lib/clipboard';
 
 interface CopyButtonProps {
   value: string;
@@ -26,20 +27,7 @@ export function CopyButton({
   const handleCopy = async () => {
     if (!value || disabled) return;
     try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(value);
-      } else {
-        // Fallback for older browsers
-        const textarea = document.createElement('textarea');
-        textarea.value = value;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.focus();
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-      }
+      await copyToClipboard(value);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -73,4 +61,3 @@ export function CopyButton({
     </Button>
   );
 }
-

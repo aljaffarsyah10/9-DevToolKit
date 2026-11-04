@@ -63,3 +63,4 @@ export function decodeBase64(input: string): string {
     throw new Error(`Failed to decode Base64 string: ${msg}`);
   }
 }
+

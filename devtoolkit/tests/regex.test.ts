@@ -39,3 +39,4 @@ describe('Regex Tester Engine', () => {
     expect(result.count).toBe(2);
   });
 });
+

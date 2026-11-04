@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Braces, Play, Minimize2, CheckCircle, Indent, FileCode, Sparkles } from 'lucide-react';
+import { Braces, Play, Minimize2, CheckCircle, Indent, FileCode } from 'lucide-react';
 import { ToolHeader } from '@/components/tools/tool-header';
 import { ToolLayout } from '@/components/tools/tool-layout';
 import { InputPanel } from '@/components/tools/input-panel';
@@ -10,6 +10,7 @@ import { ErrorMessage } from '@/components/feedback/error-message';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { formatJson, minifyJson, validateJson } from '@/features/json-formatter/utils/json';
 
 type IndentOption = 2 | 4 | 'tab';
 
@@ -37,10 +38,9 @@ export function JsonFormatterView() {
   const [error, setError] = useState<string | null>(null);
   const [validationSuccess, setValidationSuccess] = useState<boolean | null>(null);
 
-  // Handle indentation space count
-  const getIndentValue = () => (indent === 'tab' ? '\t' : indent);
+  const getIndentValue = (): number | string => (indent === 'tab' ? '\t' : indent);
 
-  // UI Interactive Format Handler (Phase 5 UI Preview with client JSON.parse)
+  // Production integrated Format Handler
   const handleFormat = () => {
     if (!input.trim()) {
       setError('Please provide JSON input to format.');
@@ -50,8 +50,7 @@ export function JsonFormatterView() {
     }
 
     try {
-      const parsed = JSON.parse(input);
-      const formatted = JSON.stringify(parsed, null, getIndentValue());
+      const formatted = formatJson(input, getIndentValue());
       setOutput(formatted);
       setError(null);
       setValidationSuccess(true);
@@ -63,7 +62,7 @@ export function JsonFormatterView() {
     }
   };
 
-  // UI Interactive Minify Handler
+  // Production integrated Minify Handler
   const handleMinify = () => {
     if (!input.trim()) {
       setError('Please provide JSON input to minify.');
@@ -73,8 +72,7 @@ export function JsonFormatterView() {
     }
 
     try {
-      const parsed = JSON.parse(input);
-      const minified = JSON.stringify(parsed);
+      const minified = minifyJson(input);
       setOutput(minified);
       setError(null);
       setValidationSuccess(true);
@@ -86,7 +84,7 @@ export function JsonFormatterView() {
     }
   };
 
-  // UI Interactive Validate Handler
+  // Production integrated Validate Handler
   const handleValidate = () => {
     if (!input.trim()) {
       setError('Please provide JSON input to validate.');
@@ -94,13 +92,15 @@ export function JsonFormatterView() {
       return;
     }
 
-    try {
-      JSON.parse(input);
+    const result = validateJson(input);
+    if (result.valid) {
       setError(null);
       setValidationSuccess(true);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Invalid JSON format';
-      setError(message);
+    } else {
+      const details = result.line && result.column
+        ? `${result.error} (Line: ${result.line}, Column: ${result.column})`
+        : result.error || 'Invalid JSON format';
+      setError(details);
       setValidationSuccess(false);
     }
   };
@@ -119,7 +119,7 @@ export function JsonFormatterView() {
     setValidationSuccess(null);
   };
 
-  // Support Tab key in textarea
+  // Intercept Tab key in textarea
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault();
@@ -150,7 +150,7 @@ export function JsonFormatterView() {
       {/* Error / Validation Notification */}
       {error && (
         <ErrorMessage
-          message="JSON Parsing Error"
+          message="JSON Validation / Parsing Error"
           details={error}
         />
       )}
@@ -220,7 +220,7 @@ export function JsonFormatterView() {
 
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
-                Phase 5 UI Interaction
+                Engine Integrated
               </Badge>
             </div>
           </>
@@ -279,4 +279,3 @@ export function JsonFormatterView() {
     </div>
   );
 }
-

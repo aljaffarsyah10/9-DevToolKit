@@ -53,3 +53,4 @@ export async function copyToClipboard(text: string): Promise<void> {
 
   throw new Error('Clipboard API is not available in this environment.');
 }
+

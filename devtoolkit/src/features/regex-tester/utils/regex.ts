@@ -77,3 +77,4 @@ export function testRegex(pattern: string, flags: string, input: string): RegexR
     count: matches.length,
   };
 }
+

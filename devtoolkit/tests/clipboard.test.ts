@@ -39,3 +39,4 @@ describe('Clipboard Utility', () => {
     await expect(copyToClipboard(null)).rejects.toThrow('Text to copy must be a string');
   });
 });
+

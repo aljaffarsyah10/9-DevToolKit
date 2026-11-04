@@ -9,6 +9,8 @@ import { OutputPanel } from '@/components/tools/output-panel';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { generateUUID } from '@/features/uuid-generator/utils/uuid';
+import { copyToClipboard } from '@/lib/clipboard';
 
 type UuidCount = 1 | 5 | 10 | 25 | 50 | 100;
 
@@ -26,42 +28,23 @@ export function UuidGeneratorView() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [lastGeneratedAt, setLastGeneratedAt] = useState<string | null>('Initial load');
 
-  // Client-side Web Crypto UUID Generator helper for Phase 5 UI
-  const generateSingleUuid = (): string => {
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-      return crypto.randomUUID();
-    }
-    // Fallback using crypto.getRandomValues
-    const buffer = new Uint8Array(16);
-    crypto.getRandomValues(buffer);
-    buffer[6] = (buffer[6] & 0x0f) | 0x40; // Version 4
-    buffer[8] = (buffer[8] & 0x3f) | 0x80; // Variant 10xx
-    const hex = Array.from(buffer)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
-  };
-
   const handleGenerate = () => {
-    const list: string[] = [];
-    for (let i = 0; i < count; i++) {
-      let raw = generateSingleUuid();
-      if (!hyphens) {
-        raw = raw.replace(/-/g, '');
-      }
-      list.push(uppercase ? raw.toUpperCase() : raw.toLowerCase());
+    try {
+      const generated = generateUUID(count, { uppercase, hyphens });
+      setUuids(generated);
+      setLastGeneratedAt(new Date().toLocaleTimeString());
+    } catch {
+      // Handled defensively
     }
-    setUuids(list);
-    setLastGeneratedAt(new Date().toLocaleTimeString());
   };
 
   const handleCopySingle = async (uuid: string, idx: number) => {
     try {
-      await navigator.clipboard.writeText(uuid);
+      await copyToClipboard(uuid);
       setCopiedIndex(idx);
       setTimeout(() => setCopiedIndex(null), 1500);
     } catch {
-      // fallback
+      // fallback handled
     }
   };
 
@@ -85,7 +68,7 @@ export function UuidGeneratorView() {
         <div className="flex items-center justify-between rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-xs text-emerald-700 dark:text-emerald-400">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-            <span>Cryptographically generated via Web Crypto API.</span>
+            <span>Cryptographically generated via Web Crypto CSPRNG.</span>
           </div>
           <span className="font-mono text-[11px] text-muted-foreground">Generated: {lastGeneratedAt}</span>
         </div>
@@ -141,7 +124,7 @@ export function UuidGeneratorView() {
 
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
-                RFC4122 v4
+                Engine Integrated
               </Badge>
             </div>
           </>
@@ -174,7 +157,7 @@ export function UuidGeneratorView() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Random Source:</span>
-                    <span className="font-mono text-foreground">crypto.randomUUID()</span>
+                    <span className="font-mono text-foreground">crypto.randomUUID() / getRandomValues()</span>
                   </div>
                 </div>
               </div>
@@ -235,4 +218,3 @@ export function UuidGeneratorView() {
     </div>
   );
 }
-

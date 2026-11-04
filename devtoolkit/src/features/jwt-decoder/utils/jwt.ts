@@ -95,3 +95,4 @@ export function decodeJwt(token: string): DecodedJwt {
     isExpired,
   };
 }
+

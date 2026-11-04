@@ -38,3 +38,4 @@ describe('Base64 Utility Engine', () => {
     expect(() => decodeBase64('ABCDE')).toThrow(/multiple of 4/);
   });
 });
+

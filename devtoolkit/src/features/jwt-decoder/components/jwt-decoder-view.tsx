@@ -10,6 +10,7 @@ import { ErrorMessage } from '@/components/feedback/error-message';
 import { EmptyState } from '@/components/feedback/empty-state';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { decodeJwt } from '@/features/jwt-decoder/utils/jwt';
 
 const SAMPLE_JWT =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZXYtMTIzNDUiLCJuYW1lIjoiQWxleCBEZXZlbG9wZXIiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE1MTYyMzkwMjIsImV4cCI6MTk1OTY2OTAyMn0.3pM0n_K1-vW4rQ5_sample_signature_not_verified';
@@ -25,20 +26,6 @@ export function JwtDecoderView() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper to decode Base64Url string in client
-  const base64UrlDecode = (str: string): string => {
-    let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-    while (base64.length % 4) {
-      base64 += '=';
-    }
-    const binary = atob(base64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return new TextDecoder().decode(bytes);
-  };
-
   const handleDecode = () => {
     if (!token.trim()) {
       setError('Please provide a JWT token string to decode.');
@@ -49,37 +36,17 @@ export function JwtDecoderView() {
       return;
     }
 
-    const parts = token.trim().split('.');
-    if (parts.length < 2) {
-      setError('Invalid JWT structure: A JWT must consist of at least header and payload separated by dots (.).');
-      setHeaderJson('');
-      setPayloadJson('');
-      setSignature('');
-      setExpiryStatus(null);
-      return;
-    }
-
     try {
-      // Decode Header
-      const decodedHeader = base64UrlDecode(parts[0]);
-      const parsedHeader = JSON.parse(decodedHeader);
-      setHeaderJson(JSON.stringify(parsedHeader, null, 2));
+      const decoded = decodeJwt(token);
+      setHeaderJson(JSON.stringify(decoded.header, null, 2));
+      setPayloadJson(JSON.stringify(decoded.payload, null, 2));
+      setSignature(decoded.signature || '(No signature segment provided)');
 
-      // Decode Payload
-      const decodedPayload = base64UrlDecode(parts[1]);
-      const parsedPayload = JSON.parse(decodedPayload);
-      setPayloadJson(JSON.stringify(parsedPayload, null, 2));
-
-      // Signature (if present)
-      setSignature(parts[2] || '(No signature segment provided)');
-
-      // Evaluate Expiry (`exp` claim)
-      if (typeof parsedPayload.exp === 'number') {
-        const expDate = new Date(parsedPayload.exp * 1000);
-        const isExpired = Date.now() > expDate.getTime();
+      if (decoded.expiresAt !== undefined && decoded.isExpired !== undefined) {
+        const expDate = new Date(decoded.expiresAt * 1000);
         setExpiryStatus({
-          status: isExpired ? 'expired' : 'active',
-          message: isExpired
+          status: decoded.isExpired ? 'expired' : 'active',
+          message: decoded.isExpired
             ? `Token Expired on ${expDate.toLocaleString()}`
             : `Token Active (Expires on ${expDate.toLocaleString()})`,
         });
@@ -93,7 +60,7 @@ export function JwtDecoderView() {
       setError(null);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to parse JWT parts';
-      setError(`Malformed JWT content: ${msg}`);
+      setError(msg);
       setHeaderJson('');
       setPayloadJson('');
       setSignature('');
@@ -188,7 +155,7 @@ export function JwtDecoderView() {
 
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-[10px] font-mono text-muted-foreground">
-                In-Memory Inspection
+                Engine Integrated
               </Badge>
             </div>
           </>
@@ -267,4 +234,3 @@ export function JwtDecoderView() {
     </div>
   );
 }
-
